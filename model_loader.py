@@ -1,15 +1,9 @@
-from llava.model.builder import load_pretrained_model
+import torch
+from transformers import LlavaProcessor, LlavaForConditionalGeneration
 
+# Load LLaVA (Large Language and Vision Assistant)
 def load_vlm_model():
-    model_path = "liuhaotian/llava-v1.5-7b"  # You can change this to a local path if needed
-
-    tokenizer, model, image_processor, context_len = load_pretrained_model(
-        model_path, model_path, model_name="llava"
-    )
-
-    return {
-        "tokenizer": tokenizer,
-        "model": model,
-        "image_processor": image_processor,
-        "context_len": context_len
-    }
+    processor = LlavaProcessor.from_pretrained("llava-hf/llava-1.5-7b-hf")
+    model = LlavaForConditionalGeneration.from_pretrained("llava-hf/llava-1.5-7b-hf")
+    model.eval()
+    return processor, model
