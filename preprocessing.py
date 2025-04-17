@@ -1,94 +1,124 @@
-import os
 import cv2
+import os
 import numpy as np
 from tqdm import tqdm
+from PIL import Image
 import rasterio
-from rasterio.plot import reshape_as_image
-from skimage import exposure
-from skimage.restoration import denoise_bilateral
+from rasterio.enums import Resampling
+from rasterio.warp import calculate_default_transform, reproject
 
-RAW_IMAGE_DIR = r'C:\Sat_img\bhuvan_sat\train_image'
-PROCESSED_DIR = 'data/processed_images'
-NDVI_DIR = 'data/ndvi_images'
-os.makedirs(PROCESSED_DIR, exist_ok=True)
-os.makedirs(NDVI_DIR, exist_ok=True)
+# --- Paths ---
+INPUT_DIR = r"C:\Sat_img\MASATI-v2\coast_ship"
+OUTPUT_DIR = "processed"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-# Helper: Histogram Matching for Radiometric Correction
-def apply_histogram_equalization(image):
-    image = image.astype(np.float32)
-    image = image / image.max()  # Normalize before CLAHE
-    return exposure.equalize_adapthist(image, clip_limit=0.03)
+# --- Enhancement Functions ---
 
-# Helper: Denoising
-def apply_denoising(image):
-    return denoise_bilateral(image, sigma_color=0.05, sigma_spatial=15, channel_axis=-1)
+def denoise_image(img):
+    """
+    Apply mild Non-Local Means Denoising.
+    """
+    return cv2.fastNlMeansDenoisingColored(img, None, h=5, hColor=5, templateWindowSize=7, searchWindowSize=21)
 
-# Helper: Resize and normalize
-def resize_and_normalize(image, size=(512, 512)):
-    image = cv2.resize(image, size)
-    return image
+def gamma_correction(img, gamma=1.1):
+    """
+    Apply gamma correction to slightly brighten image and improve contrast.
+    """
+    invGamma = 1.0 / gamma
+    table = np.array([(i / 255.0) ** invGamma * 255 for i in range(256)]).astype("uint8")
+    return cv2.LUT(img, table)
 
-# Helper: Band Selection (for NDVI or RGB)
-def select_bands(image_path):
-    with rasterio.open(image_path) as src:
-        band_count = src.count
-        if band_count >= 4:
-            red = src.read(3).astype(np.float32)
-            nir = src.read(4).astype(np.float32)
-            green = src.read(2).astype(np.float32)
-            rgb_nir = np.stack([red, green, nir], axis=-1)
-            rgb_nir = reshape_as_image(rgb_nir)
-            return red, nir, rgb_nir
-        elif band_count == 3:
-            image = src.read().astype(np.float32)
-            image = reshape_as_image(image)
-            return None, None, image
-        else:
-            return None, None, None
+def sharpen_image(img):
+    """
+    Apply very gentle sharpening to enhance edges without overshooting.
+    """
+    kernel = np.array([[0, -0.5, 0],
+                       [-0.5, 3, -0.5],
+                       [0, -0.5, 0]])
+    return cv2.filter2D(img, -1, kernel)
 
-# Helper: NDVI Calculation
-def calculate_ndvi(red, nir):
-    ndvi = (nir - red) / (nir + red + 1e-5)
-    ndvi_normalized = ((ndvi + 1) / 2 * 255).astype(np.uint8)  # scale to 0–255
-    return ndvi_normalized
+def enhance_image(img):
+    """
+    Apply full enhancement pipeline: Denoise + Gamma Correction + Sharpen.
+    """
+    img = denoise_image(img)
+    img = gamma_correction(img, gamma=1.1)
+    img = sharpen_image(img)
+    return img
 
-# Process a single image file
-def preprocess_image(image_path, filename):
-    red, nir, image = select_bands(image_path)
-    if image is None:
-        return None
+def radiometric_correction(img):
+    """
+    Placeholder for radiometric correction.
+    (This requires sensor metadata; skip for now)
+    """
+    return img
 
-    # Step 1: Radiometric Correction
-    corrected_image = apply_histogram_equalization(image)
+def geometric_correction(input_path, output_path):
+    """
+    Reproject image to standard coordinate reference system (EPSG:4326).
+    """
+    with rasterio.open(input_path) as src:
+        transform, width, height = calculate_default_transform(
+            src.crs, 'EPSG:4326', src.width, src.height, *src.bounds)
+        kwargs = src.meta.copy()
+        kwargs.update({
+            'crs': 'EPSG:4326',
+            'transform': transform,
+            'width': width,
+            'height': height
+        })
 
-    # Step 2: Denoising
-    denoised_image = apply_denoising(corrected_image)
+        with rasterio.open(output_path, 'w', **kwargs) as dst:
+            for i in range(1, src.count + 1):
+                reproject(
+                    source=rasterio.band(src, i),
+                    destination=rasterio.band(dst, i),
+                    src_transform=src.transform,
+                    src_crs=src.crs,
+                    dst_transform=transform,
+                    dst_crs='EPSG:4326',
+                    resampling=Resampling.nearest)
 
-    # Step 3: Resize
-    resized_image = resize_and_normalize(denoised_image)
+# --- Preprocessing Workflow ---
+def preprocess():
+    for filename in tqdm(os.listdir(INPUT_DIR)):
+        if filename.lower().endswith(('.png', '.jpg', '.tif', '.tiff')):
+            input_path = os.path.join(INPUT_DIR, filename)
+            output_path = os.path.join(OUTPUT_DIR, filename)
 
-    # Normalize to 8-bit for saving
-    clipped = np.clip(resized_image, 0, 1)
-    final_image = (clipped * 255).astype(np.uint8)
+            # Read image
+            img = cv2.imread(input_path)
+            if img is None:
+                print(f"Skipping unreadable file: {filename}")
+                continue
 
-    # Step 4: NDVI if applicable
-    if red is not None and nir is not None:
-        ndvi_image = calculate_ndvi(red, nir)
-        ndvi_resized = resize_and_normalize(ndvi_image)
-        cv2.imwrite(os.path.join(NDVI_DIR, filename), ndvi_resized)
+            # Radiometric Correction (if needed)
+            img = radiometric_correction(img)
 
-    return final_image
+            # Enhancement
+            img = enhance_image(img)
 
-# Preprocess Dataset
-def preprocess_dataset():
-    for filename in tqdm(os.listdir(RAW_IMAGE_DIR)):
-        if filename.endswith(('.tif', '.tiff', '.jpg', '.png')):
-            input_path = os.path.join(RAW_IMAGE_DIR, filename)
-            output_path = os.path.join(PROCESSED_DIR, filename)
-            processed = preprocess_image(input_path, filename)
-            if processed is not None:
-                cv2.imwrite(output_path, cv2.cvtColor(processed, cv2.COLOR_RGB2BGR))
+            # Save intermediate result
+            temp_path = os.path.join(OUTPUT_DIR, f"temp_{filename}")
+            cv2.imwrite(temp_path, img)
 
-if __name__ == '__main__':
-    preprocess_dataset()
-    print("Preprocessing and NDVI generation completed for Bhuvan satellite data.")
+            # Geometric correction (only for GeoTIFF)
+            if filename.lower().endswith(('.tif', '.tiff')):
+                try:
+                    with rasterio.open(input_path) as src:
+                        if src.crs:
+                            geometric_correction(temp_path, output_path)
+                            os.remove(temp_path)
+                        else:
+                            print(f"Skipping geometric correction for {filename}: No CRS found.")
+                            os.rename(temp_path, output_path)
+                except Exception as e:
+                    print(f"Error processing {filename}: {e}")
+                    os.rename(temp_path, output_path)
+            else:
+                # Non-georeferenced image, just move the result
+                os.rename(temp_path, output_path)
+
+
+if __name__ == "__main__":
+    preprocess()
