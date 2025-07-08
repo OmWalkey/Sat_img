@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛰️ SatAI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Color Palette */
+            --primary-color: #0066ff;
+            --secondary-color: #00d4aa;
+            --accent-color: #ff6b35;
+            --success-color: #00c851;
+            --warning-color: #ffbb33;
+            --error-color: #ff4444;
+            
+            /* Dark Theme */
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #141420;
+            --bg-tertiary: #1a1a2e;
+            --bg-quaternary: #252540;
+            
+            /* Text Colors */
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3cc;
+            --text-muted: #808099;
+            
+            /* Borders */
+            --border-color: #2a2a40;
+            --border-hover: #3a3a55;
+            
+            /* Shadows */
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+            
+            /* Gradients */
+            --gradient-primary: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            --gradient-accent: linear-gradient(135deg, var(--accent-color), #ff8f65);
+            --gradient-bg: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+            
+            /* Animations */
+            --transition-fast: 0.2s ease;
+            --transition-normal: 0.3s ease;
+            --transition-slow: 0.5s ease;
+            
+            /* Typography */
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: var(--gradient-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Background Animation */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .satellite-orbit {
+            position: absolute;
+            top: 20%;
+            right: 10%;
+            width: 200px;
+            height: 200px;
+            border: 2px solid rgba(0, 102, 255, 0.1);
+            border-radius: 50%;
+            animation: rotate 30s linear infinite;
+        }
+
+        .satellite-orbit::before {
+            content: '🛰️';
+            position: absolute;
+            top: -15px;
+            left: -15px;
+            font-size: 20px;
+            animation: counter-rotate 30s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes counter-rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(-360deg); }
+        }
+
+        /* Header */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 0;
+        }
+
+        .header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .nav-brand i {
+            color: var(--primary-color);
+            font-size: 1.75rem;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 50px;
+            border: 1px solid var(--border-color);
+            font-size: 0.875rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success-color);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem 0;
+        }
+
+        /* Section Styles */
+        .section {
+            margin-bottom: 3rem;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .section-header h2 {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .section-header h2 i {
+            color: var(--primary-color);
+            font-size: 1.75rem;
+        }
+
+        .section-header p {
+            color: var(--text-secondary);
+            font-size: 1.125rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .section-content {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Upload Section */
+        .upload-zone {
+            border: 3px dashed var(--border-color);
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            background: var(--bg-tertiary);
+            margin-bottom: 2rem;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--primary-color);
+            background: rgba(0, 102, 255, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .upload-zone.dragover {
+            border-color: var(--secondary-color);
+            background: rgba(0, 212, 170, 0.05);
+            transform: scale(1.02);
+        }
+
+        .upload-content i {
+            font-size: 4rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .upload-content h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-content p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .upload-formats {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            background: var(--bg-quaternary);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            display: inline-block;
+        }
+
+        /* Enhanced Layout: Image + Controls Side by Side */
+        .image-enhancement-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        /* Image Preview Area */
+        .preview-area {
+            background: var(--bg-tertiary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            position: sticky;
+            top: 100px;
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-quaternary);
+        }
+
+        .preview-header h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .image-container {
+            padding: 1.5rem;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .image-placeholder {
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .image-placeholder i {
+            font-size: 4rem;
+            color: var(--border-color);
+            margin-bottom: 1rem;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 500px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            transition: all var(--transition-normal);
+        }
+
+        .image-info {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-quaternary);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .info-item {
+            text-align: center;
+        }
+
+        .info-label {
+            display: block;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+        }
+
+        .info-value {
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            font-family: var(--font-mono);
+            font-weight: 500;
+        }
+
+        /* Enhancement Controls Sidebar */
+        .enhancement-controls {
+            background: var(--bg-tertiary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            height: fit-content;
+        }
+
+        .controls-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .controls-header h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .controls-header i {
+            color: var(--primary-color);
+        }
+
+        .control-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .slider-container input[type="range"] {
+            flex: 1;
+            height: 6px;
+            background: var(--bg-quaternary);
+            border-radius: 3px;
+            outline: none;
+            appearance: none;
+            cursor: pointer;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+            transition: transform var(--transition-fast);
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        .control-value {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-primary);
+            min-width: 45px;
+            text-align: center;
+            background: var(--bg-quaternary);
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .enhancement-options {
+            border-top: 1px solid var(--border-color);
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            transition: color var(--transition-fast);
+            margin-bottom: 1rem;
+        }
+
+        .checkbox-label:hover {
+            color: var(--text-primary);
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            display: none;
+        }
+
+        .checkmark {
+            width: 18px;
+            height: 18px;
+            background: var(--bg-quaternary);
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            position: relative;
+            transition: all var(--transition-fast);
+        }
+
+        .checkbox-label input[type="checkbox"]:checked + .checkmark {
+            background: var(--gradient-primary);
+            border-color: var(--primary-color);
+        }
+
+        .checkbox-label input[type="checkbox"]:checked + .checkmark::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .reset-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, var(--accent-color), #ff8f65);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            margin-top: 1rem;
+        }
+
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Analysis Section */
+        .analysis-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .config-group h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .analysis-select, .custom-prompt {
+            width: 100%;
+            padding: 1rem;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            transition: all var(--transition-fast);
+        }
+
+        .analysis-select:focus, .custom-prompt:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+        }
+
+        .custom-prompt {
+            min-height: 100px;
+            resize: vertical;
+            margin-top: 1rem;
+            font-family: var(--font-family);
+        }
+
+        .model-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .param-control {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .param-control label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            margin: 2rem auto 0;
+            text-decoration: none;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .btn-icon:hover {
+            background: var(--bg-quaternary);
+            color: var(--text-primary);
+            transform: translateY(-2px);
+        }
+
+        /* Results Section */
+        .results-container {
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-tertiary);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+        }
+
+        .results-placeholder {
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .results-placeholder i {
+            font-size: 3rem;
+            color: var(--border-color);
+            margin-bottom: 1rem;
+        }
+
+        .results-placeholder h3 {
+            font-size: 1.25rem;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .results-content {
+            width: 100%;
+            color: var(--text-primary);
+            line-height: 1.7;
+        }
+
+        /* Loading Animation */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 15, 0.9);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition-normal);
+        }
+
+        .loading-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .loading-content {
+            text-align: center;
+            background: var(--bg-secondary);
+            padding: 3rem;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .loading-progress {
+            width: 200px;
+            height: 4px;
+            background: var(--bg-quaternary);
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 0 auto;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-primary);
+            animation: progress 2s ease-in-out infinite;
+        }
+
+        @keyframes progress {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .image-enhancement-container {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .preview-area {
+                position: static;
+            }
+
+            .analysis-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+
+            .section-content {
+                padding: 1.5rem;
+            }
+
+            .controls-header h3 {
+                font-size: 1rem;
+            }
+
+            .model-controls {
+                gap: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Animation -->
+    <div class="bg-animation">
+        <div class="satellite-orbit"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="nav-brand">
+                <i class="fas fa-satellite"></i>
+                <span>SatAI Dashboard</span>
+            </div>
+            <div class="nav-status">
+                <div class="status-indicator" id="modelStatus">
+                    <div class="status-dot"></div>
+                    <span>Model Ready</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Section 1: Image Upload -->
+            <section class="section upload-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-upload"></i> Image Upload</h2>
+                    <p>Upload your satellite image to begin analysis</p>
+                </div>
+                
+                <div class="section-content">
+                    <div class="upload-zone" id="uploadZone">
+                        <div class="upload-content">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <h3>Drop Satellite Image Here</h3>
+                            <p>or click to browse files</p>
+                            <span class="upload-formats">Supports: PNG, JPG, JPEG, TIF, TIFF</span>
+                        </div>
+                        <input type="file" id="imageInput" accept=".png,.jpg,.jpeg,.tif,.tiff" hidden>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 2: Image Preview & Enhancement Controls -->
+            <section class="section" id="imageSection" style="display: none;">
+                <div class="section-header">
+                    <h2><i class="fas fa-image"></i> Image Enhancement</h2>
+                    <p>Adjust image properties and see changes in real-time</p>
+                </div>
+                
+                <div class="section-content">
+                    <div class="image-enhancement-container">
+                        <!-- Image Preview -->
+                        <div class="preview-area">
+                            <div class="preview-header">
+                                <h3>Live Preview</h3>
+                                <button class="btn-icon" id="fullscreenBtn" title="Fullscreen">
+                                    <i class="fas fa-expand"></i>
+                                </button>
+                            </div>
+                            <div class="image-container" id="imageContainer">
+                                <div class="image-placeholder">
+                                    <i class="fas fa-satellite-dish"></i>
+                                    <p>No image uploaded</p>
+                                </div>
+                            </div>
+                            <div class="image-info" id="imageInfo" style="display: none;">
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <span class="info-label">Resolution</span>
+                                        <span class="info-value" id="imageDimensions">-</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">File Size</span>
+                                        <span class="info-value" id="fileSize">-</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Format</span>
+                                        <span class="info-value" id="imageFormat">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Enhancement Controls Sidebar -->
+                        <div class="enhancement-controls">
+                            <div class="controls-header">
+                                <i class="fas fa-sliders-h"></i>
+                                <h3>Enhancement Controls</h3>
+                            </div>
+
+                            <div class="control-group">
+                                <label>Contrast</label>
+                                <div class="slider-container">
+                                    <input type="range" id="contrast" min="0.5" max="3" step="0.1" value="1.2">
+                                    <span class="control-value">1.2</span>
+                                </div>
+                            </div>
+                            
+                            <div class="control-group">
+                                <label>Brightness</label>
+                                <div class="slider-container">
+                                    <input type="range" id="brightness" min="0.5" max="2" step="0.1" value="1.0">
+                                    <span class="control-value">1.0</span>
+                                </div>
+                            </div>
+                            
+                            <div class="control-group">
+                                <label>Saturation</label>
+                                <div class="slider-container">
+                                    <input type="range" id="saturation" min="0" max="2" step="0.1" value="1.1">
+                                    <span class="control-value">1.1</span>
+                                </div>
+                            </div>
+                            
+                            <div class="control-group">
+                                <label>Sharpness</label>
+                                <div class="slider-container">
+                                    <input type="range" id="sharpness" min="0" max="3" step="0.1" value="1.2">
+                                    <span class="control-value">1.2</span>
+                                </div>
+                            </div>
+                            
+                            <div class="control-group">
+    <label>Edge Enhancement</label>
+    <div class="slider-container">
+        <input type="range" id="edgeEnhance" min="0" max="2" step="0.1" value="0">
+        <span class="control-value">0.0</span>
+    </div>
+</div>
+
+<div class="control-group">
+    <label>Noise Reduction</label>
+    <div class="slider-container">
+        <input type="range" id="denoise" min="0" max="1" step="0.1" value="0">
+        <span class="control-value">0.0</span>
+    </div>
+</div>
+
+                            <button class="reset-btn" id="resetEnhancements">
+                                <i class="fas fa-undo"></i> Reset All
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 3: Analysis Configuration -->
+            <section class="section analysis-config-section" id="analysisSection" style="display: none;">
+                <div class="section-header">
+                    <h2><i class="fas fa-brain"></i> Analysis Configuration</h2>
+                    <p>Configure the AI analysis parameters</p>
+                </div>
+                
+                <div class="section-content">
+                    <div class="analysis-section">
+                        <div class="config-group">
+                            <h3>Analysis Type</h3>
+                            <select id="analysisType" class="analysis-select">
+                                <option value="comprehensive">Comprehensive Scene Description</option>
+                                <option value="infrastructure">Infrastructure Analysis</option>
+                                <option value="environmental">Environmental Assessment</option>
+                                <option value="landuse">Land Use Classification</option>
+                                <option value="custom">Custom Analysis</option>
+                            </select>
+                            <textarea id="customPrompt" class="custom-prompt" placeholder="Enter your custom analysis prompt here..." style="display: none;"></textarea>
+                        </div>
+                        
+                        <div class="config-group">
+                            <h3>Model Parameters</h3>
+                            <div class="model-controls">
+                                <div class="param-control">
+                                    <label>Max Tokens</label>
+                                    <div class="slider-container">
+                                        <input type="range" id="maxTokens" min="150" max="500" step="25" value="300">
+                                        <span class="control-value">300</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="param-control">
+                                    <label>Temperature</label>
+                                    <div class="slider-container">
+                                        <input type="range" id="temperature" min="0.1" max="1.0" step="0.1" value="0.3">
+                                        <span class="control-value">0.3</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="param-control">
+                                    <label>Top-P</label>
+                                    <div class="slider-container">
+                                        <input type="range" id="topP" min="0.1" max="1.0" step="0.1" value="0.9">
+                                        <span class="control-value">0.9</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn-primary" id="analyzeBtn" disabled>
+                        <i class="fas fa-rocket"></i>
+                        Start Analysis
+                    </button>
+                </div>
+            </section>
+
+            <!-- Section 4: Analysis Results -->
+            <section class="section results-section" id="resultsSection" style="display: none;">
+                <div class="section-header">
+                    <h2><i class="fas fa-chart-line"></i> Analysis Results</h2>
+                    <p>AI-powered satellite image analysis results</p>
+                </div>
+                
+                <div class="section-content">
+                    <div class="results-container" id="resultsContainer">
+                        <div class="results-placeholder">
+                            <i class="fas fa-satellite"></i>
+                            <h3>Ready for Analysis</h3>
+                            <p>Upload an image and click "Start Analysis" to see results</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Analyzing satellite image...</div>
+            <div class="loading-progress">
+                <div class="progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentImage = null;
+        let imageElement = null;
+        let originalFilters = {
+            contrast: 1.2,
+            brightness: 1.0,
+            saturation: 1.1,
+            sharpness: 1.2
+        };
+
+        // DOM Elements
+        const uploadZone = document.getElementById('uploadZone');
+        const imageInput = document.getElementById('imageInput');
+        const imageSection = document.getElementById('imageSection');
+        const analysisSection = document.getElementById('analysisSection');
+        const resultsSection = document.getElementById('resultsSection');
+        const imageContainer = document.getElementById('imageContainer');
+        const imageInfo = document.getElementById('imageInfo');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const analysisType = document.getElementById('analysisType');
+        const customPrompt = document.getElementById('customPrompt');
+
+        // Initialize the application
+        function init() {
+            setupEventListeners();
+            setupImageEnhancementControls();
+            setupAnalysisControls();
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Upload zone events
+            uploadZone.addEventListener('click', () => imageInput.click());
+            uploadZone.addEventListener('dragover', handleDragOver);
+            uploadZone.addEventListener('dragleave', handleDragLeave);
+            uploadZone.addEventListener('drop', handleDrop);
+            
+            // Image input change
+            imageInput.addEventListener('change', handleImageUpload);
+            
+            // Analysis button
+            analyzeBtn.addEventListener('click', performAnalysis);
+            
+            // Analysis type change
+            analysisType.addEventListener('change', handleAnalysisTypeChange);
+            
+            // Reset button
+            document.getElementById('resetEnhancements').addEventListener('click', resetEnhancements);
+            
+            // Fullscreen button
+            document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreen);
+        }
+
+        // Setup image enhancement controls
+        function setupImageEnhancementControls() {
+            const controls = ['contrast', 'brightness', 'saturation', 'sharpness', 'edgeEnhance', 'denoise'];
+
+            
+            controls.forEach(control => {
+                const slider = document.getElementById(control);
+                const valueDisplay = slider.nextElementSibling;
+                
+                slider.addEventListener('input', (e) => {
+                    const value = parseFloat(e.target.value);
+                    valueDisplay.textContent = value.toFixed(1);
+                    applyImageFilters();
+                });
+            });
+            
+            
+        }
+
+        // Setup analysis controls
+        function setupAnalysisControls() {
+            const paramControls = ['maxTokens', 'temperature', 'topP'];
+            
+            paramControls.forEach(control => {
+                const slider = document.getElementById(control);
+                const valueDisplay = slider.nextElementSibling;
+                
+                slider.addEventListener('input', (e) => {
+                    const value = control === 'maxTokens' ? parseInt(e.target.value) : parseFloat(e.target.value);
+                    valueDisplay.textContent = control === 'maxTokens' ? value : value.toFixed(1);
+                });
+            });
+        }
+
+        // Handle drag over
+        function handleDragOver(e) {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        }
+
+        // Handle drag leave
+        function handleDragLeave(e) {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+        }
+
+        // Handle drop
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleImageFile(files[0]);
+            }
+        }
+
+        // Handle image upload
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                handleImageFile(file);
+            }
+        }
+
+        // Handle image file
+        function handleImageFile(file) {
+            // Validate file type
+            const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/tiff', 'image/tif'];
+            if (!validTypes.includes(file.type)) {
+                alert('Please upload a valid image file (PNG, JPG, JPEG, TIF, TIFF)');
+                return;
+            }
+
+            // Check file size (limit to 50MB)
+            if (file.size > 50 * 1024 * 1024) {
+                alert('File size too large. Please upload an image smaller than 50MB.');
+                return;
+            }
+
+            currentImage = file;
+            displayImage(file);
+            showImageInfo(file);
+            
+            // Show enhancement and analysis sections
+            imageSection.style.display = 'block';
+            analysisSection.style.display = 'block';
+            analyzeBtn.disabled = false;
+        }
+
+        // Display image
+        function displayImage(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // Store the original image source
+                window.originalImageSrc = e.target.result;
+                
+                imageContainer.innerHTML = `
+                    <img src="${e.target.result}" alt="Satellite Image" class="preview-image" id="previewImage">
+                `;
+                imageElement = document.getElementById('previewImage');
+                applyImageFilters();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Show image info
+        function showImageInfo(file) {
+            const img = new Image();
+            img.onload = function() {
+                document.getElementById('imageDimensions').textContent = `${img.width}×${img.height}`;
+                document.getElementById('fileSize').textContent = formatFileSize(file.size);
+                document.getElementById('imageFormat').textContent = file.type.split('/')[1].toUpperCase();
+                imageInfo.style.display = 'block';
+            };
+            img.src = URL.createObjectURL(file);
+        }
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Apply image filters
+        function applyImageFilters() {
+            if (!imageElement) return;
+            
+            const contrast = document.getElementById('contrast').value;
+            const brightness = document.getElementById('brightness').value;
+            const saturation = document.getElementById('saturation').value;
+            const sharpness = document.getElementById('sharpness').value;
+            const edgeEnhance = parseFloat(document.getElementById('edgeEnhance').value);
+            const denoise = parseFloat(document.getElementById('denoise').value);
+            
+            // Apply basic CSS filters first
+            let filters = [
+                `contrast(${contrast})`,
+                `brightness(${brightness})`,
+                `saturate(${saturation})`
+            ];
+            
+            // Apply sharpness only if no advanced processing is needed
+            imageElement.style.filter = filters.join(' ');
+            if (edgeEnhance > 0 || denoise > 0 || sharpness !== "1.2") {
+    applyAdvancedFilters(sharpness, edgeEnhance, denoise);
+}
+            
+            // Add transition for smooth changes
+            imageElement.style.transition = 'filter 0.2s ease';
+        }
+        
+        // Apply advanced filters using canvas processing
+        function applyAdvancedFilters(sharpness, edgeEnhance, denoise) {
+            if (!imageElement || !imageElement.src) return;
+            
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            
+            img.onload = function() {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                
+                let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                
+                // Apply noise reduction first if enabled
+                if (denoise) {
+                    imageData = applyNoiseReduction(imageData);
+                }
+                
+                // Apply edge enhancement if enabled
+                if (edgeEnhance) {
+                    imageData = applyEdgeEnhancement(imageData);
+                }
+                
+                // Apply sharpening
+                if (sharpness > 1) {
+                    imageData = applySharpen(imageData, sharpness);
+                }
+                
+                ctx.putImageData(imageData, 0, 0);
+                
+                // Create a new image element with processed data
+                const processedImg = new Image();
+                processedImg.onload = function() {
+                    // Replace the original image source with processed version
+                    imageElement.src = canvas.toDataURL();
+                };
+                processedImg.src = canvas.toDataURL();
+                imageElement.style.filter = 'none';
+            };
+            
+            img.crossOrigin = 'anonymous';
+            img.src = window.originalImageSrc || imageElement.src;
+
+        }
+        
+        // Apply noise reduction (median filter approximation)
+        function applyNoiseReduction(imageData) {
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
+            const newData = new Uint8ClampedArray(data);
+            
+            for (let y = 1; y < height - 1; y++) {
+                for (let x = 1; x < width - 1; x++) {
+                    for (let c = 0; c < 3; c++) { // RGB channels only
+                        const neighbors = [];
+                        for (let dy = -1; dy <= 1; dy++) {
+                            for (let dx = -1; dx <= 1; dx++) {
+                                const idx = ((y + dy) * width + (x + dx)) * 4 + c;
+                                neighbors.push(data[idx]);
+                            }
+                        }
+                        neighbors.sort((a, b) => a - b);
+                        const median = neighbors[4]; // Middle value of 9 neighbors
+                        newData[(y * width + x) * 4 + c] = median;
+                    }
+                }
+            }
+            
+            return new ImageData(newData, width, height);
+        }
+        
+        // Apply edge enhancement using Laplacian kernel
+        function applyEdgeEnhancement(imageData) {
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
+            const newData = new Uint8ClampedArray(data);
+            
+            // Laplacian kernel for edge detection
+            const kernel = [
+                [0, -1, 0],
+                [-1, 5, -1],
+                [0, -1, 0]
+            ];
+            
+            for (let y = 1; y < height - 1; y++) {
+                for (let x = 1; x < width - 1; x++) {
+                    for (let c = 0; c < 3; c++) { // RGB channels only
+                        let sum = 0;
+                        for (let ky = 0; ky < 3; ky++) {
+                            for (let kx = 0; kx < 3; kx++) {
+                                const pixelY = y + ky - 1;
+                                const pixelX = x + kx - 1;
+                                const idx = (pixelY * width + pixelX) * 4 + c;
+                                sum += data[idx] * kernel[ky][kx];
+                            }
+                        }
+                        newData[(y * width + x) * 4 + c] = Math.max(0, Math.min(255, sum));
+                    }
+                }
+            }
+            
+            return new ImageData(newData, width, height);
+        }
+        
+        // Apply sharpening filter
+        function applySharpen(imageData, intensity) {
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
+            const newData = new Uint8ClampedArray(data);
+            
+            // Sharpening kernel - intensity affects the center value
+            const sharpenAmount = (intensity - 1) * 2;
+            const kernel = [
+                [0, -1, 0],
+                [-1, 4 + sharpenAmount, -1],
+                [0, -1, 0]
+            ];
+            
+            for (let y = 1; y < height - 1; y++) {
+                for (let x = 1; x < width - 1; x++) {
+                    for (let c = 0; c < 3; c++) { // RGB channels only
+                        let sum = 0;
+                        for (let ky = 0; ky < 3; ky++) {
+                            for (let kx = 0; kx < 3; kx++) {
+                                const pixelY = y + ky - 1;
+                                const pixelX = x + kx - 1;
+                                const idx = (pixelY * width + pixelX) * 4 + c;
+                                sum += data[idx] * kernel[ky][kx];
+                            }
+                        }
+                        newData[(y * width + x) * 4 + c] = Math.max(0, Math.min(255, sum));
+                    }
+                }
+            }
+            
+            return new ImageData(newData, width, height);
+        }
+
+        // Reset enhancements
+        function resetEnhancements() {
+            document.getElementById('contrast').value = originalFilters.contrast;
+            document.getElementById('brightness').value = originalFilters.brightness;
+            document.getElementById('saturation').value = originalFilters.saturation;
+            document.getElementById('sharpness').value = originalFilters.sharpness;
+            document.getElementById('edgeEnhance').value = 0;
+            document.getElementById('denoise').value = 0;
+            document.querySelector('#edgeEnhance + .control-value').textContent = '0.0';
+            document.querySelector('#denoise + .control-value').textContent = '0.0';
+            
+            // Update value displays
+            document.querySelector('#contrast + .control-value').textContent = originalFilters.contrast;
+            document.querySelector('#brightness + .control-value').textContent = originalFilters.brightness;
+            document.querySelector('#saturation + .control-value').textContent = originalFilters.saturation;
+            document.querySelector('#sharpness + .control-value').textContent = originalFilters.sharpness;
+            
+            applyImageFilters();
+        }
+
+        // Handle analysis type change
+        function handleAnalysisTypeChange() {
+            const isCustom = analysisType.value === 'custom';
+            customPrompt.style.display = isCustom ? 'block' : 'none';
+        }
+
+        // Toggle fullscreen
+        function toggleFullscreen() {
+            if (!imageElement) return;
+            
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                imageElement.requestFullscreen();
+            }
+        }
+
+        // Perform analysis
+        async function performAnalysis() {
+            if (!currentImage) return;
+            
+            // Show loading overlay
+            loadingOverlay.classList.add('active');
+            
+            // Simulate analysis (replace with actual API call)
+            await simulateAnalysis();
+            
+            // Hide loading overlay
+            loadingOverlay.classList.remove('active');
+            
+            // Show results section
+            resultsSection.style.display = 'block';
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Simulate analysis (replace with actual API integration)
+        async function simulateAnalysis() {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    const analysisTypeValue = analysisType.value;
+                    const resultContainer = document.getElementById('resultsContainer');
+                    
+                    let analysisResult = '';
+                    
+                    switch (analysisTypeValue) {
+                        case 'comprehensive':
+                            analysisResult = generateComprehensiveAnalysis();
+                            break;
+                        case 'infrastructure':
+                            analysisResult = generateInfrastructureAnalysis();
+                            break;
+                        case 'environmental':
+                            analysisResult = generateEnvironmentalAnalysis();
+                            break;
+                        case 'landuse':
+                            analysisResult = generateLandUseAnalysis();
+                            break;
+                        case 'custom':
+                            analysisResult = generateCustomAnalysis();
+                            break;
+                    }
+                    
+                    resultContainer.innerHTML = `
+                        <div class="results-content">
+                            <h3 style="color: var(--primary-color); margin-bottom: 1rem;">
+                                <i class="fas fa-chart-bar"></i> Analysis Results
+                            </h3>
+                            ${analysisResult}
+                        </div>
+                    `;
+                    
+                    resolve();
+                }, 3000);
+            });
+        }
+
+        // Generate different types of analysis results
+        function generateComprehensiveAnalysis() {
+            return `
+                <div style="background: var(--bg-tertiary); padding: 1.5rem; border-radius: 12px; margin-bottom: 1rem;">
+                    <h4 style="color: var(--secondary-color); margin-bottom: 0.5rem;">Scene Overview</h4>
+                    <p>This satellite image shows a mixed urban-rural landscape with distinct land use patterns. The analysis reveals urban development in the central and eastern portions, agricultural areas in the western region, and natural vegetation scattered throughout.</p>
+                </div>
+                
+                <div style="background: var(--bg-tertiary); padding: 1.5rem; border-radius: 12px; margin-bottom: 1rem;">
+                    <h4 style="color: var(--secondary-color); margin-bottom: 0.5rem;">Key Features Detected</h4>
+                    <ul style="margin-left: 1.5rem; line-height: 1.8;">
+                        <li>Urban settlements with dense building patterns</li>
+                        <li>Transportation infrastructure including roads and pathways</li>
+                        <li>Agricultural fields with organized crop patterns</li>
+                        <li>Water bodies and drainage systems</li>
+                        <li>Forested areas and natural vegetation</li>
+                    </ul>
+                </div>
+                
+                <div style="background: var(--bg-tertiary); padding: 1.5rem; border-radius: 12px;">
+                    <h4 style="color: var(--secondary-color); margin-bottom: 0.5rem;">Analysis Confidence</h4>
+                    <p>High confidence (87%) - Clear image quality with good spectral resolution allows for accurate feature identification and classification.</p>
+                </div>
+            `;
+        }
+
+        function generateInfrastructureAnalysis() {
+            return `
+                <div style="background: var(--bg-tertiary); padding: 1.5rem; border-radius: 12px; margin-bottom: 1rem;">
+                    <h4 style="color: var(--secondary-color); margin-bottom: 0.5rem;">Infrastructure Assessment</h4>
+                    <p>Comprehensive analysis of built infrastructure and transportation networks within the satellite image coverage area.</p>
+                </div>
+                
+                <div style="background: var(--bg-tertiary); padding: 1.5rem; border-radius: 12px; margin-bottom: 1rem;">
+                    <h4 style="color: var(--secondary-color); margin-bottom: 0.5rem;">Transportation Networks</h4>
+                    <ul style="margin-left: 1.5rem; line-height: 1.8;">
+                        <li>Primary roads: 12.3 km of major thoroughfares identified</li>
+                        <li>Secondary roads: 28.7 km of connecting roadways</li>
+                        <li>Potential railway infrastructure detected in northern section</li>
+                        <li>Bridge structures at key water crossings</li>
+                    </ul>
+                </div>
+                
+                <div style="background: var(--bg-tertiary); padding: 1.5rem; border-radius: 12px;">
+                    <h4 style="color: var(--secondary-color); margin-bottom: 0.5rem;">Built Environment</h4>
+                    <ul style="margin-left: 1.5rem; line-height: 1.8;">
+                        <li>Residential areas: Dense housing clusters in central zones</li>
+                        <li>Commercial/Industrial: Large structures in eastern sector</li>
+                        <li>Public facilities: Schools, hospitals, and civic buildings identified</li>
+                        <li>Utility infrastructure: Power lines and communication towers</li>
+                    </ul>
+                </div>
+            `;
+        }
+
+        function generateEnvironmentalAnalysis() {
+            return `
+                <div style="background: var(--bg-tertiary); padding: 1.5rem; border-radius: 12px; margin-bottom: 1rem;">
+                    <h4 style="color: var(--secondary-color); margin-bottom: 0.5rem;">Environmental Overview</h4>
+                    <p>Detailed assessment of environmental conditions, vegetation health, and natural resource distribution across the surveyed area.</p>
+                </div>
+                
+                <div style="background: var(--bg-tertiary); padding: 1.5rem; border-radius: 12px; margin-bottom: 1rem;">
+                    <h4 style="color: var(--secondary-color); margin-bottom: 0.5rem;">Vegetation Analysis</h4>
+                    <ul style="margin-left: 1.5rem; line-height: 1.8;">
+                        <li>Forest cover: 34% of total area (healthy canopy density)</li>
+                        <li>Agricultural land: 28% showing active cultivation</li>
+                        <li>Grassland/Pasture: 15% with moderate to good health</li>
+                        <li>NDVI values indicate good vegetation vigor in most areas</li>
+                    </ul>
+                </div>
+                
+                <div style="background: var(--bg-tertiary); padding: 1.5rem; border-radius: 12px;">
+                    <h4 style="color: var(--secondary-color); margin-bottom: 0.5rem;">Water Resources</h4>
+                    <ul style="margin-left: 1.5rem; line-height: 1.8;">
+                        <li>Surface water bodies: 3 major lakes/reservoirs identified</li>
+                        <li>River systems: Primary waterway running north-south</li>
+                        <li>Wetland areas: Small wetlands in southeastern region</li>
+                        <li>Water quality indicators suggest good conditions</li>
+                    </ul>
+                </div>
+            `;
+        }
+
+        function generateLandUseAnalysis() {
+            return `
+                <div style="background: var(--bg-tertiary); padding: 1.5rem; border-radius: 12px; margin-bottom: 1rem;">
+                    <h4 style="color: var(--secondary-color); margin-bottom: 0.5rem;">Land Use Classification</h4>
+                    <p>Systematic classification of land use patterns with area calculations and distribution analysis.</p>
+                </div>
+                
+                <div style="background: var(--bg-tertiary); padding: 1.5rem; border-radius: 12px; margin-bottom: 1rem;">
+                    <h4 style="color: var(--secondary-color); margin-bottom: 0.5rem;">Classification Results</h4>
+                    <ul style="margin-left: 1.5rem; line-height: 1.8;">
+                        <li>Urban/Built-up: 23% (578 hectares)</li>
+                        <li>Agricultural: 35% (878 hectares)</li>
+                        <li>Forest/Woodland: 28% (702 hectares)</li>
+                        <li>Water bodies: 6% (151 hectares)</li>
+                        <li>Barren/Unused: 8% (201 hectares)</li>
+                    </ul>
+                </div>
+                
+                <div style="background: var(--bg-tertiary); padding: 1.5rem; border-radius: 12px;">
+                    <h4 style="color: var(--secondary-color); margin-bottom: 0.5rem;">Land Use Trends</h4>
+                    <p>Analysis suggests ongoing urban expansion in eastern areas with some agricultural land conversion. Forest cover appears stable with good connectivity between woodland patches.</p>
+                </div>
+            `;
+        }
+
+        function generateCustomAnalysis() {
+            const prompt = customPrompt.value || 'General satellite image analysis';
+            return `
+                <div style="background: var(--bg-tertiary); padding: 1.5rem; border-radius: 12px; margin-bottom: 1rem;">
+                    <h4 style="color: var(--secondary-color); margin-bottom: 0.5rem;">Custom Analysis Request</h4>
+                    <p style="font-style: italic; color: var(--text-muted);">"${prompt}"</p>
+                </div>
+                
+                <div style="background: var(--bg-tertiary); padding: 1.5rem; border-radius: 12px;">
+                    <h4 style="color: var(--secondary-color); margin-bottom: 0.5rem;">Analysis Results</h4>
+                    <p>Based on your specific request, this satellite image analysis focuses on the particular aspects you've outlined. The AI model has processed the image using advanced computer vision techniques to extract relevant information according to your custom parameters.</p>
+                    
+                    <p style="margin-top: 1rem;">Key findings include detailed spatial analysis, feature detection, and interpretation specific to your requirements. The model confidence level for this custom analysis is high, with clear identification of the requested features and patterns.</p>
+                </div>
+            `;
+        }
+
+        // Initialize the application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
