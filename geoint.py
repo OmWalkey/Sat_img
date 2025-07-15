@@ -15,7 +15,7 @@ import pandas as pd
 import cv2
 
 # ---------------------- Streamlit Config ----------------------
-st.set_page_config(page_title="Military Image Analysis Pro", layout="wide", page_icon="🛰️")
+st.set_page_config(page_title="GeoInt", layout="wide", page_icon="🛰️")
 
 # ---------------------- Model & Quantization Config ----------------------
 MODEL_NAME = "llava-hf/llava-1.5-7b-hf"
@@ -467,7 +467,7 @@ with st.sidebar.expander("⚙️ Model Settings", expanded=False):
     top_p = st.slider("Top-p", 0.1, 1.0, 0.85, step=0.05)
 
 # ---------------------- Main Interface ----------------------
-st.title("🛰️ Military Image Analysis Pro")
+st.title("🛰️ GeoInt")
 st.markdown("**Advanced military aerial image analysis with LLaVA Vision Language Model**")
 
 # Model status indicator
@@ -635,7 +635,7 @@ if st.button("🧹 Clear Memory Cache"):
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: #666;'>
-    <p>Military Image Analysis Pro</p>
-    <p>Powered by LLaVA Vision Language Model</p>
+    <p>GeoInt</p>
+    <p> by AICoE</p>
 </div>
 """, unsafe_allow_html=True)
