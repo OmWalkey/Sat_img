@@ -15,7 +15,7 @@ import pandas as pd
 import cv2
 
 # ---------------------- Streamlit Config ----------------------
-st.set_page_config(page_title="GeoInt", layout="wide", page_icon="🛰️")
+st.set_page_config(page_title="Military Image Analysis Pro", layout="wide", page_icon="🛰️")
 
 # ---------------------- Model & Quantization Config ----------------------
 MODEL_NAME = "llava-hf/llava-1.5-7b-hf"
@@ -208,396 +208,209 @@ def run_analysis(image, prompt_text, model, processor, device, max_tokens=300, t
         else:
             return f"Analysis failed: {error_msg}"
 
-# ---------------------- Military Analysis Prompts ----------------------
-def get_military_analysis_prompts():
+# ---------------------- Enhanced Analysis Functions ----------------------
+def determine_analysis_approach(image, model, processor, device):
+    """
+    First run military significance assessment to determine appropriate analysis approach
+    """
+    screening_prompt = """You are an expert image analyst. Examine this aerial/satellite image and determine if it contains military significance.
+
+MILITARY INDICATORS TO LOOK FOR:
+- Military vehicles, aircraft, or naval vessels
+- Uniformed personnel in formations
+- Military facilities, bases, or installations
+- Weapons systems, radar installations, or defense structures
+- Military equipment, vehicles, or hardware
+- Fortifications, bunkers, or defensive positions
+
+ASSESSMENT RESPONSE FORMAT:
+1. MILITARY SIGNIFICANCE: [YES/NO]
+2. CONFIDENCE LEVEL: [High/Medium/Low]
+3. PRIMARY INDICATORS: [List specific military elements observed]
+4. BRIEF DESCRIPTION: [2-3 sentences describing what you see]
+
+If NO military significance is detected, provide a standard aerial image description focusing on civilian infrastructure, natural features, and general landscape characteristics."""
+    
+    # Run initial screening with conservative parameters
+    screening_result = run_analysis(
+        image, screening_prompt, model, processor, device,
+        max_tokens=250, temperature=0.2, top_p=0.8
+    )
+    
+    # Parse screening result to determine if military analysis is needed
+    military_keywords = ["MILITARY SIGNIFICANCE: YES", "MILITARY", "VEHICLE", "WEAPON", 
+                        "AIRCRAFT", "UNIFORM", "DEFENSE", "TACTICAL", "PERSONNEL", "EQUIPMENT"]
+    
+    has_military_significance = any(keyword in screening_result.upper() for keyword in military_keywords)
+    
+    return "military" if has_military_significance else "civilian", screening_result
+
+def get_enhanced_military_analysis_prompts():
+    """Enhanced prompts optimized for LLaVA 1.5 7B model"""
     return {
-        "Basic Image Description": """Provide a concise, accurate description of this aerial/satellite image using military observation standards:
+        "Military Significance Assessment": """You are an expert image analyst. Examine this aerial/satellite image and determine if it contains military significance.
 
-IMAGERY METADATA:
-- Image type (aerial photograph, satellite imagery, infrared, etc.)
-- Approximate resolution and scale
-- Time indicators (shadows, lighting conditions, seasonal markers)
-- Weather conditions affecting visibility
+MILITARY INDICATORS TO LOOK FOR:
+- Military vehicles, aircraft, or naval vessels
+- Uniformed personnel in formations
+- Military facilities, bases, or installations
+- Weapons systems, radar installations, or defense structures
+- Military equipment, vehicles, or hardware
+- Fortifications, bunkers, or defensive positions
 
-GEOGRAPHIC CONTEXT:
-- Terrain type and topography
-- General location characteristics (urban, rural, coastal, mountainous)
-- Dominant land use patterns
-- Natural boundaries and features
+ASSESSMENT RESPONSE FORMAT:
+1. MILITARY SIGNIFICANCE: [YES/NO]
+2. CONFIDENCE LEVEL: [High/Medium/Low]
+3. PRIMARY INDICATORS: [List specific military elements observed]
+4. BRIEF DESCRIPTION: [2-3 sentences describing what you see]
 
-STRUCTURAL OBSERVATIONS:
-- Built structures present (count, type, arrangement)
-- Transportation infrastructure (roads, railways, airfields)
-- Utility infrastructure visible
-- Industrial or military facilities
+If NO military significance is detected, provide a standard aerial image description focusing on civilian infrastructure, natural features, and general landscape characteristics.""",
 
-ACTIVITY INDICATORS:
-- Vehicle presence and movement
-- Personnel activity if observable
-- Equipment or material stockpiles
-- Signs of recent construction or changes
+        "Basic Military Assessment": """You are a military image analyst. Analyze this aerial image and provide:
 
-TACTICAL SIGNIFICANCE:
-- Key terrain features
-- Mobility corridors and restrictions
-- Observation points and fields of fire
-- Defensive or strategic value
+1. MILITARY ASSETS VISIBLE:
+   - Vehicles (type, quantity, condition)
+   - Aircraft or naval vessels
+   - Personnel formations
+   - Equipment and weapons systems
 
-Report only what is directly observable. Use precise military terminology. Distinguish between confirmed observations and probable assessments.""",
+2. INFRASTRUCTURE:
+   - Military facilities and buildings
+   - Defensive positions
+   - Transportation networks
+   - Communication equipment
 
-        "Target Identification and Classification": """Analyze this aerial imagery for target identification using military classification standards:
+3. TACTICAL SITUATION:
+   - Unit positioning and formation
+   - Defensive or offensive posture
+   - Activity level and readiness
+   - Strategic advantages of location
 
-MILITARY TARGETS (BY PRIORITY):
-- Command and Control facilities
-- Air Defense Systems (radar, missile sites, AAA)
-- Military vehicles and equipment (identify type, quantity, condition)
-- Personnel concentrations and formations
-- Weapons storage facilities and ammunition depots
+4. THREAT ASSESSMENT:
+   - Weapons capabilities observed
+   - Defensive measures in place
+   - Potential vulnerabilities
+   - Operational implications
 
-INFRASTRUCTURE TARGETS:
-- Critical nodes (power generation, substations, transformers)
-- Transportation hubs (bridges, rail junctions, ports)
-- Communication facilities (towers, switching stations)
-- Fuel storage and distribution systems
-- Manufacturing facilities with military relevance
+Keep responses factual and based only on what is clearly visible in the image.""",
 
-TARGET CHARACTERISTICS:
-- Precise dimensions and coordinates
-- Hardness assessment (construction type, protection level)
-- Accessibility for targeting systems
-- Collateral damage considerations
-- Time-sensitive target indicators
+        "Vehicle and Equipment Analysis": """Focus on identifying and analyzing military vehicles and equipment in this aerial image:
 
-DEFENSIVE MEASURES:
-- Camouflage, concealment, and deception efforts
+VEHICLE IDENTIFICATION:
+- Count and classify all military vehicles visible
+- Identify vehicle types (tanks, APCs, trucks, artillery)
+- Assess vehicle condition and operational status
+- Note any distinctive markings or configurations
+
+EQUIPMENT ASSESSMENT:
+- Weapons systems and their capabilities
+- Communication equipment and antennas
+- Support equipment and logistics assets
+- Maintenance and repair facilities
+
+DEPLOYMENT ANALYSIS:
+- Formation patterns and tactical positioning
+- Camouflage and concealment efforts
+- Readiness indicators and activity levels
+- Logistical support arrangements
+
+Provide specific details about what you observe, including quantities, types, and conditions.""",
+
+        "Facility and Infrastructure Analysis": """Analyze the military facilities and infrastructure visible in this aerial image:
+
+FACILITY IDENTIFICATION:
+- Command and control centers
+- Barracks and administrative buildings
+- Maintenance and repair facilities
+- Storage and supply depots
+- Training and exercise areas
+
+INFRASTRUCTURE ASSESSMENT:
+- Transportation networks (roads, railways, airfields)
+- Communication systems and towers
+- Power generation and distribution
+- Water and fuel supply systems
+- Defensive perimeters and barriers
+
+OPERATIONAL CAPABILITY:
+- Facility capacity and accommodation
+- Operational readiness indicators
+- Security measures and protection levels
+- Logistical support capabilities
+
+Focus on observable details and their military significance.""",
+
+        "Activity and Movement Analysis": """Analyze military activity and movement patterns in this aerial image:
+
+PERSONNEL ACTIVITY:
+- Troop formations and movements
+- Training exercises and drills
+- Guard duties and security patrols
+- Maintenance and support activities
+
+VEHICLE MOVEMENT:
+- Vehicle positioning and deployment
+- Movement patterns and directions
+- Convoy formations and logistics
+- Tactical positioning changes
+
+OPERATIONAL TEMPO:
+- Activity level indicators
+- Readiness state assessment
+- Exercise vs. operational activities
+- Maintenance and support operations
+
+Report only what is directly observable in the image.""",
+
+        "Defensive Position Analysis": """Examine defensive positions and fortifications in this aerial image:
+
+DEFENSIVE STRUCTURES:
+- Bunkers, trenches, and fighting positions
+- Barriers, obstacles, and perimeter defenses
+- Camouflaged and concealed positions
 - Hardened shelters and protective structures
-- Air defense coverage and blind spots
-- Electronic warfare equipment signatures
 
-BATTLE DAMAGE ASSESSMENT BASELINES:
-- Pre-strike facility conditions
-- Key structural components and vulnerabilities
-- Functional assessment of target systems
-- Repair timelines and capability estimates
-
-Report using standardized target nomenclature and NATO target classification systems.""",
-
-        "Tactical Infrastructure Analysis": """Conduct tactical-level infrastructure analysis for operational planning:
-
-MILITARY INFRASTRUCTURE:
-- Classify facilities by function (command, logistics, maintenance, housing)
-- Assess capacity and operational capability
-- Identify supporting infrastructure requirements
-- Note security measures and force protection
-
-TRANSPORTATION MILITARY UTILITY:
-- Road classification for military traffic (MLC ratings where assessable)
-- Bridge load capacities and bypass routes
-- Airfield facilities and aircraft handling capability
-- Railroad capacity for military logistics
-- Port/harbor facilities for amphibious operations
-
-UTILITIES AND SERVICES:
-- Power generation capacity and distribution vulnerabilities
-- Water treatment and distribution systems
-- Fuel storage and distribution networks
-- Communications infrastructure and switching nodes
-
-DEFENSIVE CONSIDERATIONS:
-- Natural defensive positions and fields of fire
-- Obstacle placement and effectiveness
-- Ingress/egress routes and vulnerability
-- Dead space and concealment opportunities
-
-ENGINEER REQUIREMENTS:
-- Mobility enhancement requirements
-- Countermobility opportunities
-- Survivability positions and improvements
-- Infrastructure hardening assessments
-
-Use military engineer terminology and provide assessments relevant to tactical operations.""",
-
-        "Order of Battle Analysis": """Analyze imagery for Order of Battle (OB) intelligence indicators:
-
-UNIT IDENTIFICATION:
-- Vehicle types and quantities (track vs wheeled, combat vs support)
-- Equipment signatures and technical characteristics
-- Unit marking or identification symbols if visible
-- Formation patterns and tactical deployments
-
-FORCE STRUCTURE INDICATORS:
-- Estimated unit size based on equipment/facility footprint
-- Command structure indicators (headquarters facilities, antennas)
-- Support element identification (maintenance, supply, medical)
-- Reserve or reinforcement capabilities
-
-ACTIVITY PATTERNS:
-- Training activities and exercise indicators
-- Operational tempo and readiness levels
-- Logistics resupply patterns
-- Personnel movement and concentration
-
-CAPABILITY ASSESSMENT:
-- Weapons systems capabilities and ranges
-- Mobility and maneuver capability
-- Sustainment and endurance factors
-- Electronic warfare and communications capability
-
-DEFENSIVE POSTURE:
-- Defensive positions and fighting positions
-- Obstacle construction and placement
-- Fire support positions and coordination
-- Reserve positioning and commitment options
-
-TEMPORAL ANALYSIS:
-- Changes in force posture over time
-- Seasonal deployment patterns
-- Exercise cycles and training periods
-- Maintenance and refit schedules
-
-Report findings using standard OB format with unit designations where determinable.""",
-
-        "Threat Assessment and Force Protection": """Analyze imagery for threat assessment and force protection requirements:
-
-DIRECT FIRE THREATS:
-- Anti-tank positions and fields of fire
-- Sniper positions and overwatch locations
-- Direct fire weapon systems and ranges
-- Improvised fighting positions
-
-INDIRECT FIRE THREATS:
+WEAPONS POSITIONS:
 - Artillery and mortar positions
-- Rocket launch sites and storage
-- Forward observer positions
-- Fire direction centers
+- Anti-aircraft defense systems
+- Direct fire weapons emplacements
+- Observation and fire control positions
 
-AIR DEFENSE THREATS:
-- Surface-to-air missile sites
-- Anti-aircraft artillery positions
-- Radar installations and coverage
-- Electronic warfare systems
+TACTICAL LAYOUT:
+- Fields of fire and coverage areas
+- Interlocking fire patterns
+- Dead space and blind spots
+- Support and supply routes
 
-ASYMMETRIC THREATS:
-- IED emplacement indicators
-- Ambush sites and kill zones
-- Cache locations and supply routes
-- Surveillance and reconnaissance positions
+Focus on defensive capabilities and tactical advantages.""",
 
-FORCE PROTECTION MEASURES:
-- Perimeter security and access control
-- Hardened shelters and bunkers
-- Early warning systems
-- Reaction force positions
+        "Standard Aerial Image Analysis": """You are a professional aerial image analyst. Provide a comprehensive description of this aerial/satellite image:
 
-VULNERABILITY ASSESSMENT:
-- Approach routes and dead space
-- Blind spots and surveillance gaps
-- Critical facility protection levels
-- Evacuation routes and procedures
+GENERAL OVERVIEW:
+- Image type and quality
+- Geographic setting and terrain
+- Weather and lighting conditions
+- Scale and resolution assessment
 
-COUNTERMEASURES:
-- Active protection systems
-- Camouflage and concealment effectiveness
-- Electronic countermeasures
-- Deception operations indicators
+LAND USE AND FEATURES:
+- Urban, suburban, or rural characteristics
+- Residential, commercial, or industrial areas
+- Agricultural lands and vegetation
+- Natural features (water bodies, forests, mountains)
 
-Use threat assessment matrices and force protection condition classifications.""",
+INFRASTRUCTURE:
+- Transportation networks (roads, railways, airports)
+- Utilities and communication lines
+- Public facilities and services
+- Commercial and industrial facilities
 
-        "Battle Damage Assessment": """Conduct Battle Damage Assessment (BDA) analysis of target engagement:
+NOTABLE FEATURES:
+- Distinctive landmarks or structures
+- Construction or development activities
+- Environmental features or concerns
+- Cultural or historical significance
 
-TARGET STATUS:
-- Functional damage assessment (destroyed, damaged, intact)
-- Structural integrity evaluation
-- Operational capability remaining
-- Repair timeline estimates
-
-DAMAGE INDICATORS:
-- Blast damage patterns and crater analysis
-- Fire damage and secondary explosions
-- Structural collapse or deformation
-- Equipment destruction or displacement
-
-MISSION EFFECTIVENESS:
-- Target function disruption percentage
-- Critical components affected
-- Redundancy and backup systems status
-- Overall mission kill assessment
-
-COLLATERAL DAMAGE:
-- Civilian infrastructure impact
-- Non-target facility damage
-- Environmental considerations
-- Population displacement indicators
-
-ENEMY RESPONSE:
-- Damage control and repair efforts
-- Personnel evacuation patterns
-- Security posture changes
-- Operational adaptation indicators
-
-FOLLOW-UP REQUIREMENTS:
-- Additional strikes needed
-- Target restrike recommendations
-- Alternate target considerations
-- Surveillance requirements
-
-INTELLIGENCE VALUE:
-- Lessons learned for future targeting
-- Weapon system effectiveness
-- Target hardening assessment
-- Defensive countermeasure evaluation
-
-Report using standardized BDA terminology and effectiveness scales.""",
-
-        "Special Operations Analysis": """Analyze imagery for special operations planning and execution:
-
-INFILTRATION/EXFILTRATION:
-- Helicopter landing zones (primary and alternate)
-- Approach routes and concealment
-- Obstacle avoidance and bypass routes
-- Extraction point suitability
-
-TARGET ACCESS:
-- Facility layout and room clearing considerations
-- Entry and exit points assessment
-- Internal movement routes
-- Hostage/personnel location indicators
-
-SECURITY POSTURE:
-- Guard positions and patrol patterns
-- Sensor placement and coverage
-- Reaction force capabilities
-- Alert states and posture changes
-
-RECONNAISSANCE REQUIREMENTS:
-- Observation post locations
-- Surveillance device placement
-- Counter-surveillance considerations
-- Intelligence collection opportunities
-
-DIRECT ACTION PLANNING:
-- Assault positions and fire support
-- Breach points and methods
-- Casualty evacuation routes
-- Rally points and safe houses
-
-SUPPORT REQUIREMENTS:
-- Fire support coordination
-- Medical evacuation planning
-- Logistics and resupply
-- Communications relay points
-
-RISK ASSESSMENT:
-- Civilian presence and protection
-- Collateral damage potential
-- Operational security threats
-- Mission abort criteria
-
-CONTINGENCY PLANNING:
-- Alternate courses of action
-- Emergency procedures
-- Backup extraction methods
-- Deception and misdirection options
-
-Use special operations terminology and planning factors.""",
-
-        "Geospatial Intelligence Analysis": """Conduct comprehensive GEOINT analysis for operational planning:
-
-COORDINATE REFERENCE:
-- Precise geographic coordinates (MGRS format)
-- Elevation data and contour analysis
-- Aspect and slope calculations
-- Datum and projection specifications
-
-SPATIAL RELATIONSHIPS:
-- Distance and bearing calculations
-- Line-of-sight analysis
-- Intervisibility assessments
-- Spatial pattern analysis
-
-TEMPORAL ANALYSIS:
-- Multi-temporal change detection
-- Seasonal variation patterns
-- Activity cycle identification
-- Predictive pattern modeling
-
-MULTI-SPECTRAL ANALYSIS:
-- Vegetation health and camouflage effectiveness
-- Water body analysis and depth estimation
-- Soil composition and trafficability
-- Thermal signatures if applicable
-
-MEASUREMENT AND SIGNATURE INTELLIGENCE:
-- Facility dimensions and capacities
-- Equipment specifications and capabilities
-- Communication signature analysis
-- Electronic emissions patterns
-
-PREDICTIVE ANALYSIS:
-- Future development patterns
-- Threat evolution projections
-- Environmental impact assessments
-- Operational window identification
-
-DISSEMINATION REQUIREMENTS:
-- Classification levels and handling
-- Distribution lists and need-to-know
-- Update frequency requirements
-- Format specifications for end users
-
-Format using standardized GEOINT reporting procedures and coordinate systems.""",
-
-        "Counterintelligence Analysis": """Conduct counterintelligence analysis of aerial imagery:
-
-COLLECTION INDICATORS:
-- Surveillance equipment and positions
-- Communication interception capabilities
-- Reconnaissance activity patterns
-- Intelligence collection signatures
-
-SECURITY MEASURES:
-- Camouflage and concealment effectiveness
-- Operational security violations
-- Personnel security indicators
-- Information security practices
-
-DECEPTION OPERATIONS:
-- Decoy installations and equipment
-- Misdirection indicators
-- False signature creation
-- Camouflage pattern analysis
-
-FOREIGN INTELLIGENCE THREATS:
-- Known collection platforms
-- Surveillance pattern analysis
-- Communication monitoring equipment
-- Human intelligence indicators
-
-VULNERABILITY ASSESSMENT:
-- Signature management failures
-- Predictable pattern identification
-- Critical information exposure
-- Operational security gaps
-
-COUNTERMEASURE EFFECTIVENESS:
-- Concealment success rates
-- Deception operation results
-- Electronic countermeasure performance
-- Physical security measure adequacy
-
-THREAT MITIGATION:
-- Signature reduction recommendations
-- Operational pattern changes
-- Security enhancement requirements
-- Deception operation planning
-
-INTELLIGENCE PREPARATION:
-- Threat capability assessment
-- Collection probability analysis
-- Countermeasure planning
-- Risk mitigation strategies
-
-Report using counterintelligence terminology and threat assessment frameworks."""
+Provide accurate, objective observations based solely on what is visible in the image."""
     }
 
 # ---------------------- Sidebar Configuration ----------------------
@@ -619,21 +432,33 @@ with st.sidebar.expander("🖼️ Image Processing", expanded=False):
     edge_enhance = st.checkbox("Edge Enhancement", value=False)
     denoise = st.checkbox("Noise Reduction", value=False)
 
-# Analysis configuration
-military_prompts = get_military_analysis_prompts()
-analysis_type = st.sidebar.selectbox(
-    "Analysis Type:", 
-    list(military_prompts.keys()) + ["Custom"]
-)
+# Enhanced Analysis configuration
+enhanced_military_prompts = get_enhanced_military_analysis_prompts()
+
+# Add auto-screening option
+auto_screen = st.sidebar.checkbox("Auto-detect military significance", value=True)
+
+if auto_screen:
+    analysis_type = st.sidebar.selectbox(
+        "Analysis Type:", 
+        ["Auto-detect"] + list(enhanced_military_prompts.keys()) + ["Custom"]
+    )
+else:
+    analysis_type = st.sidebar.selectbox(
+        "Analysis Type:", 
+        list(enhanced_military_prompts.keys()) + ["Custom"]
+    )
 
 if analysis_type == "Custom":
     prompt = st.sidebar.text_area(
         "Custom Prompt:",
-        "Analyze this aerial image using military intelligence standards.",
+        "Analyze this aerial image using professional standards.",
         height=100
     )
+elif analysis_type == "Auto-detect":
+    prompt = None  # Will be determined by screening
 else:
-    prompt = military_prompts[analysis_type]
+    prompt = enhanced_military_prompts[analysis_type]
 
 # Model parameters
 with st.sidebar.expander("⚙️ Model Settings", expanded=False):
@@ -686,11 +511,48 @@ with col2:
                     image, contrast, brightness, saturation, sharpness, edge_enhance, denoise
                 )
                 
-                with st.spinner("Analyzing aerial image..."):
-                    result = run_analysis(
-                        enhanced_image, prompt, model, processor, torch_device,
-                        max_tokens, temperature, top_p
-                    )
+                if analysis_type == "Auto-detect" or auto_screen:
+                    # Run screening first
+                    with st.spinner("Screening image for military significance..."):
+                        analysis_approach, screening_result = determine_analysis_approach(
+                            enhanced_image, model, processor, torch_device
+                        )
+                    
+                    st.info(f"**Screening Result:** {analysis_approach.title()} image detected")
+                    
+                    # Show screening details in expander
+                    with st.expander("📋 Screening Details"):
+                        st.write(screening_result)
+                    
+                    # Determine appropriate analysis
+                    if analysis_approach == "military":
+                        if analysis_type == "Auto-detect":
+                            # Use best military analysis prompt
+                            final_prompt = enhanced_military_prompts["Basic Military Assessment"]
+                        else:
+                            final_prompt = prompt
+                    else:
+                        # Use civilian analysis
+                        final_prompt = enhanced_military_prompts["Standard Aerial Image Analysis"]
+                    
+                    # Run detailed analysis
+                    with st.spinner("Running detailed analysis..."):
+                        result = run_analysis(
+                            enhanced_image, final_prompt, model, processor, torch_device,
+                            max_tokens, temperature, top_p
+                        )
+                    
+                    analysis_used = "Basic Military Assessment" if analysis_approach == "military" and analysis_type == "Auto-detect" else analysis_type
+                    
+                else:
+                    # Direct analysis without screening
+                    with st.spinner("Analyzing aerial image..."):
+                        result = run_analysis(
+                            enhanced_image, prompt, model, processor, torch_device,
+                            max_tokens, temperature, top_p
+                        )
+                    analysis_used = analysis_type
+                    analysis_approach = "unknown"
                 
                 st.success("Analysis Complete!")
                 st.write("**Analysis Result:**")
@@ -703,7 +565,8 @@ with col2:
                 analysis_data = {
                     'timestamp': datetime.datetime.now().isoformat(),
                     'image_name': uploaded.name,
-                    'analysis_type': analysis_type,
+                    'analysis_type': analysis_used,
+                    'military_significance': analysis_approach,
                     'result': result,
                     'image_size': enhanced_image.size
                 }
@@ -725,6 +588,7 @@ if hasattr(st.session_state, 'analysis_results') and st.session_state.analysis_r
             'Timestamp': result['timestamp'],
             'Image': result['image_name'],
             'Analysis Type': result['analysis_type'],
+            'Military Significance': result['military_significance'],
             'Word Count': len(result['result'].split()),
             'Image Size': f"{result['image_size'][0]}x{result['image_size'][1]}"
         })
@@ -771,7 +635,7 @@ if st.button("🧹 Clear Memory Cache"):
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: #666;'>
-    <p>GeoInt</p>
-    <p> by AICoE</p>
+    <p>Military Image Analysis Pro</p>
+    <p>Powered by LLaVA Vision Language Model</p>
 </div>
 """, unsafe_allow_html=True)
