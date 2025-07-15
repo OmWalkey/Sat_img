@@ -208,209 +208,64 @@ def run_analysis(image, prompt_text, model, processor, device, max_tokens=300, t
         else:
             return f"Analysis failed: {error_msg}"
 
-# ---------------------- Enhanced Analysis Functions ----------------------
+# ---------------------- Simplified Analysis Functions ----------------------
 def determine_analysis_approach(image, model, processor, device):
     """
-    First run military significance assessment to determine appropriate analysis approach
+    Simplified screening to determine appropriate analysis approach
     """
-    screening_prompt = """You are an expert image analyst. Examine this aerial/satellite image and determine if it contains military significance.
-
-MILITARY INDICATORS TO LOOK FOR:
-- Military vehicles, aircraft, or naval vessels
-- Uniformed personnel in formations
-- Military facilities, bases, or installations
-- Weapons systems, radar installations, or defense structures
-- Military equipment, vehicles, or hardware
-- Fortifications, bunkers, or defensive positions
-
-ASSESSMENT RESPONSE FORMAT:
-1. MILITARY SIGNIFICANCE: [YES/NO]
-2. CONFIDENCE LEVEL: [High/Medium/Low]
-3. PRIMARY INDICATORS: [List specific military elements observed]
-4. BRIEF DESCRIPTION: [2-3 sentences describing what you see]
-
-If NO military significance is detected, provide a standard aerial image description focusing on civilian infrastructure, natural features, and general landscape characteristics."""
+    screening_prompt = """Examine this aerial/satellite image briefly. Does it contain military vehicles, aircraft, personnel, or military facilities? Answer with YES or NO, followed by a brief 1-sentence description of what you see."""
     
     # Run initial screening with conservative parameters
     screening_result = run_analysis(
         image, screening_prompt, model, processor, device,
-        max_tokens=250, temperature=0.2, top_p=0.8
+        max_tokens=100, temperature=0.2, top_p=0.8
     )
     
     # Parse screening result to determine if military analysis is needed
-    military_keywords = ["MILITARY SIGNIFICANCE: YES", "MILITARY", "VEHICLE", "WEAPON", 
-                        "AIRCRAFT", "UNIFORM", "DEFENSE", "TACTICAL", "PERSONNEL", "EQUIPMENT"]
-    
-    has_military_significance = any(keyword in screening_result.upper() for keyword in military_keywords)
+    has_military_significance = "YES" in screening_result.upper()
     
     return "military" if has_military_significance else "civilian", screening_result
 
-def get_enhanced_military_analysis_prompts():
-    """Enhanced prompts optimized for LLaVA 1.5 7B model"""
+def get_analysis_prompts():
+    """Shortened and simplified analysis prompts"""
     return {
-        "Military Significance Assessment": """You are an expert image analyst. Examine this aerial/satellite image and determine if it contains military significance.
+        "Brief Description": """Provide a concise 2-3 sentence description of this aerial image focusing on the most important features you can identify.""",
+        
+        "Basic Military Assessment": """Analyze this aerial image and provide a concise military assessment:
 
-MILITARY INDICATORS TO LOOK FOR:
-- Military vehicles, aircraft, or naval vessels
-- Uniformed personnel in formations
-- Military facilities, bases, or installations
-- Weapons systems, radar installations, or defense structures
-- Military equipment, vehicles, or hardware
-- Fortifications, bunkers, or defensive positions
+1. MILITARY ASSETS: List vehicles, aircraft, personnel, and equipment visible
+2. INFRASTRUCTURE: Note military facilities, defensive positions, and key structures  
+3. TACTICAL SITUATION: Describe unit positioning and activity level
+4. KEY OBSERVATIONS: Highlight the most significant military elements
 
-ASSESSMENT RESPONSE FORMAT:
-1. MILITARY SIGNIFICANCE: [YES/NO]
-2. CONFIDENCE LEVEL: [High/Medium/Low]
-3. PRIMARY INDICATORS: [List specific military elements observed]
-4. BRIEF DESCRIPTION: [2-3 sentences describing what you see]
+Keep the response focused and under 150 words.""",
 
-If NO military significance is detected, provide a standard aerial image description focusing on civilian infrastructure, natural features, and general landscape characteristics.""",
+        "Vehicle and Equipment Analysis": """Identify and analyze military vehicles and equipment in this aerial image:
 
-        "Basic Military Assessment": """You are a military image analyst. Analyze this aerial image and provide:
+- Count and classify military vehicles (tanks, APCs, trucks, artillery)
+- Note vehicle positioning and formations
+- Assess operational readiness indicators
 
-1. MILITARY ASSETS VISIBLE:
-   - Vehicles (type, quantity, condition)
-   - Aircraft or naval vessels
-   - Personnel formations
-   - Equipment and weapons systems
+Provide specific counts and types observed.""",
 
-2. INFRASTRUCTURE:
-   - Military facilities and buildings
-   - Defensive positions
-   - Transportation networks
-   - Communication equipment
+        "Facility Analysis": """Analyze military facilities and infrastructure:
 
-3. TACTICAL SITUATION:
-   - Unit positioning and formation
-   - Defensive or offensive posture
-   - Activity level and readiness
-   - Strategic advantages of location
+- Identify command centers, barracks, and operational buildings
+- Note defensive structures and perimeters
+- Assess transportation and communication infrastructure
+- Evaluate facility capacity and security measures
 
-4. THREAT ASSESSMENT:
-   - Weapons capabilities observed
-   - Defensive measures in place
-   - Potential vulnerabilities
-   - Operational implications
+Focus on key infrastructure elements.""",
 
-Keep responses factual and based only on what is clearly visible in the image.""",
 
-        "Vehicle and Equipment Analysis": """Focus on identifying and analyzing military vehicles and equipment in this aerial image:
+        "Standard Aerial Analysis": """Provide a standard aerial image analysis:
 
-VEHICLE IDENTIFICATION:
-- Count and classify all military vehicles visible
-- Identify vehicle types (tanks, APCs, trucks, artillery)
-- Assess vehicle condition and operational status
-- Note any distinctive markings or configurations
+- Describe the general setting and terrain
+- Identify land use (urban, rural, industrial, agricultural)
+- Note transportation networks and infrastructure
+- Highlight distinctive features or landmarks
 
-EQUIPMENT ASSESSMENT:
-- Weapons systems and their capabilities
-- Communication equipment and antennas
-- Support equipment and logistics assets
-- Maintenance and repair facilities
-
-DEPLOYMENT ANALYSIS:
-- Formation patterns and tactical positioning
-- Camouflage and concealment efforts
-- Readiness indicators and activity levels
-- Logistical support arrangements
-
-Provide specific details about what you observe, including quantities, types, and conditions.""",
-
-        "Facility and Infrastructure Analysis": """Analyze the military facilities and infrastructure visible in this aerial image:
-
-FACILITY IDENTIFICATION:
-- Command and control centers
-- Barracks and administrative buildings
-- Maintenance and repair facilities
-- Storage and supply depots
-- Training and exercise areas
-
-INFRASTRUCTURE ASSESSMENT:
-- Transportation networks (roads, railways, airfields)
-- Communication systems and towers
-- Power generation and distribution
-- Water and fuel supply systems
-- Defensive perimeters and barriers
-
-OPERATIONAL CAPABILITY:
-- Facility capacity and accommodation
-- Operational readiness indicators
-- Security measures and protection levels
-- Logistical support capabilities
-
-Focus on observable details and their military significance.""",
-
-        "Activity and Movement Analysis": """Analyze military activity and movement patterns in this aerial image:
-
-PERSONNEL ACTIVITY:
-- Troop formations and movements
-- Training exercises and drills
-- Guard duties and security patrols
-- Maintenance and support activities
-
-VEHICLE MOVEMENT:
-- Vehicle positioning and deployment
-- Movement patterns and directions
-- Convoy formations and logistics
-- Tactical positioning changes
-
-OPERATIONAL TEMPO:
-- Activity level indicators
-- Readiness state assessment
-- Exercise vs. operational activities
-- Maintenance and support operations
-
-Report only what is directly observable in the image.""",
-
-        "Defensive Position Analysis": """Examine defensive positions and fortifications in this aerial image:
-
-DEFENSIVE STRUCTURES:
-- Bunkers, trenches, and fighting positions
-- Barriers, obstacles, and perimeter defenses
-- Camouflaged and concealed positions
-- Hardened shelters and protective structures
-
-WEAPONS POSITIONS:
-- Artillery and mortar positions
-- Anti-aircraft defense systems
-- Direct fire weapons emplacements
-- Observation and fire control positions
-
-TACTICAL LAYOUT:
-- Fields of fire and coverage areas
-- Interlocking fire patterns
-- Dead space and blind spots
-- Support and supply routes
-
-Focus on defensive capabilities and tactical advantages.""",
-
-        "Standard Aerial Image Analysis": """You are a professional aerial image analyst. Provide a comprehensive description of this aerial/satellite image:
-
-GENERAL OVERVIEW:
-- Image type and quality
-- Geographic setting and terrain
-- Weather and lighting conditions
-- Scale and resolution assessment
-
-LAND USE AND FEATURES:
-- Urban, suburban, or rural characteristics
-- Residential, commercial, or industrial areas
-- Agricultural lands and vegetation
-- Natural features (water bodies, forests, mountains)
-
-INFRASTRUCTURE:
-- Transportation networks (roads, railways, airports)
-- Utilities and communication lines
-- Public facilities and services
-- Commercial and industrial facilities
-
-NOTABLE FEATURES:
-- Distinctive landmarks or structures
-- Construction or development activities
-- Environmental features or concerns
-- Cultural or historical significance
-
-Provide accurate, objective observations based solely on what is visible in the image."""
+Keep the description factual and concise."""
     }
 
 # ---------------------- Sidebar Configuration ----------------------
@@ -432,8 +287,8 @@ with st.sidebar.expander("🖼️ Image Processing", expanded=False):
     edge_enhance = st.checkbox("Edge Enhancement", value=False)
     denoise = st.checkbox("Noise Reduction", value=False)
 
-# Enhanced Analysis configuration
-enhanced_military_prompts = get_enhanced_military_analysis_prompts()
+# Simplified Analysis configuration
+analysis_prompts = get_analysis_prompts()
 
 # Add auto-screening option
 auto_screen = st.sidebar.checkbox("Auto-detect military significance", value=True)
@@ -441,12 +296,12 @@ auto_screen = st.sidebar.checkbox("Auto-detect military significance", value=Tru
 if auto_screen:
     analysis_type = st.sidebar.selectbox(
         "Analysis Type:", 
-        ["Auto-detect"] + list(enhanced_military_prompts.keys()) + ["Custom"]
+        ["Auto-detect"] + list(analysis_prompts.keys()) + ["Custom"]
     )
 else:
     analysis_type = st.sidebar.selectbox(
         "Analysis Type:", 
-        list(enhanced_military_prompts.keys()) + ["Custom"]
+        list(analysis_prompts.keys()) + ["Custom"]
     )
 
 if analysis_type == "Custom":
@@ -458,11 +313,14 @@ if analysis_type == "Custom":
 elif analysis_type == "Auto-detect":
     prompt = None  # Will be determined by screening
 else:
-    prompt = enhanced_military_prompts[analysis_type]
+    prompt = analysis_prompts[analysis_type]
 
-# Model parameters
+# Model parameters - adjusted for shorter responses
 with st.sidebar.expander("⚙️ Model Settings", expanded=False):
-    max_tokens = st.slider("Max Response Tokens", 150, 500, 300, step=50)
+    if analysis_type == "Brief Description":
+        max_tokens = st.slider("Max Response Tokens", 50, 200, 100, step=25)
+    else:
+        max_tokens = st.slider("Max Response Tokens", 100, 400, 200, step=50)
     temperature = st.slider("Temperature", 0.1, 1.0, 0.3, step=0.1)
     top_p = st.slider("Top-p", 0.1, 1.0, 0.85, step=0.05)
 
@@ -512,31 +370,25 @@ with col2:
                 )
                 
                 if analysis_type == "Auto-detect" or auto_screen:
-                    # Run screening first
-                    with st.spinner("Screening image for military significance..."):
+                    # Run simplified screening
+                    with st.spinner("Analyzing image..."):
                         analysis_approach, screening_result = determine_analysis_approach(
                             enhanced_image, model, processor, torch_device
                         )
                     
-                    st.info(f"**Screening Result:** {analysis_approach.title()} image detected")
-                    
-                    # Show screening details in expander
-                    with st.expander("📋 Screening Details"):
-                        st.write(screening_result)
-                    
-                    # Determine appropriate analysis
+                    # Determine appropriate analysis without showing screening details
                     if analysis_approach == "military":
                         if analysis_type == "Auto-detect":
-                            # Use best military analysis prompt
-                            final_prompt = enhanced_military_prompts["Basic Military Assessment"]
+                            # Use basic military analysis prompt
+                            final_prompt = analysis_prompts["Basic Military Assessment"]
                         else:
                             final_prompt = prompt
                     else:
                         # Use civilian analysis
-                        final_prompt = enhanced_military_prompts["Standard Aerial Image Analysis"]
+                        final_prompt = analysis_prompts["Standard Aerial Analysis"]
                     
                     # Run detailed analysis
-                    with st.spinner("Running detailed analysis..."):
+                    with st.spinner("Generating analysis..."):
                         result = run_analysis(
                             enhanced_image, final_prompt, model, processor, torch_device,
                             max_tokens, temperature, top_p
