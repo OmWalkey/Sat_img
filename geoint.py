@@ -388,7 +388,7 @@ with col2:
                     if analysis_approach == "military":
                         if analysis_type == "Auto-detect":
                             # Use basic military analysis prompt
-                            final_prompt = analysis_prompts["Basic Military Assessment"]
+                            final_prompt = analysis_prompts["Defense Image Analyst"]
                         else:
                             final_prompt = prompt
                     else:
@@ -402,7 +402,7 @@ with col2:
                             max_tokens, temperature, top_p
                         )
                     
-                    analysis_used = "Basic Military Assessment" if analysis_approach == "military" and analysis_type == "Auto-detect" else analysis_type
+                    analysis_used = "Defense Image Analyst" if analysis_approach == "military" and analysis_type == "Auto-detect" else analysis_type
                     
                 else:
                     # Direct analysis without screening
