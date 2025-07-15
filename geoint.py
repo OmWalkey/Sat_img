@@ -22,10 +22,9 @@ MODEL_NAME = "llava-hf/llava-1.5-7b-hf"
 
 # Improved BitsAndBytesConfig
 BQB_CONFIG = BitsAndBytesConfig(
-    load_in_4bit=True,
-    bnb_4bit_compute_dtype=torch.float16,
-    bnb_4bit_use_double_quant=True,
-    bnb_4bit_quant_type="nf4"
+    load_in_8bit=True,
+    llm_int8_threshold=6.0,
+    llm_int8_has_fp16_weight=False
 )
 
 @st.cache_resource
@@ -229,43 +228,52 @@ def determine_analysis_approach(image, model, processor, device):
 def get_analysis_prompts():
     """Shortened and simplified analysis prompts"""
     return {
-        "Brief Description": """Provide a concise 2-3 sentence description of this aerial image focusing on the most important features you can identify.""",
+        "Brief Description": """Provide a concise 2-3 sentence description of this aerial image. Focus only on clearly visible and visually distinct features. Do not speculate—describe what can be confidently identified based on shape, layout, or contrast.""",
         
-        "Basic Military Assessment": """Analyze this aerial image and provide a concise military assessment:
+        "Defense Image Analyst": """ 
+ Role: You are a Defence Image Analyst specializing in the interpretation of aerial imagery.
+ Task: Analyze the provided aerial image for any identifiable objects, structures, or patterns relevant to military intelligence, surveillance, and reconnaissance (ISR).
 
-1. MILITARY ASSETS: List vehicles, aircraft, personnel, and equipment visible
-2. INFRASTRUCTURE: Note military facilities, defensive positions, and key structures  
-3. TACTICAL SITUATION: Describe unit positioning and activity level
-4. KEY OBSERVATIONS: Highlight the most significant military elements
+*Constraints:*
 
-Keep the response focused and under 150 words.""",
+* Only describe features that are visibly present in the image.
+* Use precise, technical terminology (e.g., "vehicle," "runway," "antenna array") where applicable.
+* Do not infer intent, movement, or hidden objects.
+* Do not speculate about object identity unless clearly supported by visual evidence.
+* If uncertain, state *"Not visually discernible"* or *"Indeterminate based on image evidence."*
 
-        "Vehicle and Equipment Analysis": """Identify and analyze military vehicles and equipment in this aerial image:
+Output format:
+1. *Identified Objects/Structures:* List clearly visible items with estimated count and relative location (e.g., "5 vehicles near the center of the image").
+2. *Terrain/Environment Features:* Note terrain types (e.g., desert, forest, urban), visible roadways, airstrips, or bodies of water.
+3. *Confidence Levels:* For each item, provide a confidence level (e.g., High / Medium / Low) based only on visual clarity.
+4. *No Analysis Beyond Visual Evidence.* Avoid assumptions not grounded in what can be directly observed.""",
 
-- Count and classify military vehicles (tanks, APCs, trucks, artillery)
-- Note vehicle positioning and formations
-- Assess operational readiness indicators
+        "Vehicle and Equipment Analysis": """Examine the aerial image and report only confidently identifiable military vehicles and equipment:
 
-Provide specific counts and types observed.""",
+- Count and classify military vehicles (e.g., tanks, trucks, artillery) **only if shape, size, and context make identification unambiguous**
+- Describe vehicle positioning or formations **only if patterns are clearly visible**
+- Comment on operational readiness indicators **only if supported by visible cues (e.g., open hatches, movement, engine heat, orientation)**
 
-        "Facility Analysis": """Analyze military facilities and infrastructure:
+Avoid uncertain identifications or ambiguous objects. Provide evidence-based reasoning for each count and classification.""",
 
-- Identify command centers, barracks, and operational buildings
-- Note defensive structures and perimeters
-- Assess transportation and communication infrastructure
-- Evaluate facility capacity and security measures
+        "Facility Analysis": """Analyze military-related infrastructure in this image by observing only distinct, verifiable features:
 
-Focus on key infrastructure elements.""",
+- Identify command centers, barracks, or operational buildings only if their layout or design clearly indicates military use
+- Note defensive structures or perimeters based on visible fortifications or barriers
+- Describe transportation/communication infrastructure only when cables, antennas, roads, or landing pads are clearly seen
+- Evaluate capacity and security **only if multiple distinct indicators (e.g., fencing, watchtowers, vehicle yards) support it**
+
+Do not assume facility type or function without visual confirmation. Be specific and cautious.""",
 
 
-        "Standard Aerial Analysis": """Provide a standard aerial image analysis:
+        "Standard Aerial Analysis": """Provide a structured analysis of the aerial image using only visually confirmed features:
 
-- Describe the general setting and terrain
-- Identify land use (urban, rural, industrial, agricultural)
-- Note transportation networks and infrastructure
-- Highlight distinctive features or landmarks
+- Describe the general setting and terrain based on texture, elevation, and color patterns
+- Identify land use (urban, rural, industrial, agricultural) only if structural patterns and land layout clearly indicate it
+- Note transportation networks (roads, rails, airstrips) and infrastructure visible without ambiguity
+- Highlight distinctive landmarks only if their identity is evident from shape, size, or layout
 
-Keep the description factual and concise."""
+Avoid speculation and unverified guesses. Explain why each element was identified as such."""
     }
 
 # ---------------------- Sidebar Configuration ----------------------
@@ -325,8 +333,8 @@ with st.sidebar.expander("⚙️ Model Settings", expanded=False):
     top_p = st.slider("Top-p", 0.1, 1.0, 0.85, step=0.05)
 
 # ---------------------- Main Interface ----------------------
-st.title("🛰️ GeoInt")
-st.markdown("**Advanced military aerial image analysis with LLaVA Vision Language Model**")
+st.title("🛰️ GEOINT")
+st.markdown("**Advanced aerial image analysis**")
 
 # Model status indicator
 if model is None or processor is None:
