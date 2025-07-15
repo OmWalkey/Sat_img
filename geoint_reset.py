@@ -292,10 +292,22 @@ DEFAULT_TEMPERATURE = 0.3
 DEFAULT_TOP_P = 0.85
 
 # Initialize session state for parameters
-if 'reset_image_params' not in st.session_state:
-    st.session_state.reset_image_params = False
-if 'reset_model_params' not in st.session_state:
-    st.session_state.reset_model_params = False
+if 'image_params' not in st.session_state:
+    st.session_state.image_params = {
+        'contrast': DEFAULT_CONTRAST,
+        'brightness': DEFAULT_BRIGHTNESS,
+        'saturation': DEFAULT_SATURATION,
+        'sharpness': DEFAULT_SHARPNESS,
+        'edge_enhance': DEFAULT_EDGE_ENHANCE,
+        'denoise': DEFAULT_DENOISE
+    }
+
+if 'model_params' not in st.session_state:
+    st.session_state.model_params = {
+        'max_tokens': DEFAULT_MAX_TOKENS_FULL,
+        'temperature': DEFAULT_TEMPERATURE,
+        'top_p': DEFAULT_TOP_P
+    }
 
 # ---------------------- Sidebar Configuration ----------------------
 st.sidebar.header("📥 Input & Settings")
@@ -314,32 +326,30 @@ with st.sidebar.expander("🖼️ Image Processing", expanded=False):
         st.write("**Image Enhancement Parameters**")
     with col2:
         if st.button("🔄 Reset", key="reset_image_btn", help="Reset to default values"):
-            st.session_state.reset_image_params = True
+            st.session_state.image_params = {
+                'contrast': DEFAULT_CONTRAST,
+                'brightness': DEFAULT_BRIGHTNESS,
+                'saturation': DEFAULT_SATURATION,
+                'sharpness': DEFAULT_SHARPNESS,
+                'edge_enhance': DEFAULT_EDGE_ENHANCE,
+                'denoise': DEFAULT_DENOISE
+            }
             st.rerun()
     
-    # Use default values if reset was triggered
-    if st.session_state.reset_image_params:
-        contrast_val = DEFAULT_CONTRAST
-        brightness_val = DEFAULT_BRIGHTNESS
-        saturation_val = DEFAULT_SATURATION
-        sharpness_val = DEFAULT_SHARPNESS
-        edge_enhance_val = DEFAULT_EDGE_ENHANCE
-        denoise_val = DEFAULT_DENOISE
-        st.session_state.reset_image_params = False
-    else:
-        contrast_val = 1.2
-        brightness_val = 1.0
-        saturation_val = 1.1
-        sharpness_val = 1.2
-        edge_enhance_val = False
-        denoise_val = False
+    contrast = st.slider("Contrast", 0.5, 3.0, st.session_state.image_params['contrast'], step=0.1, key="contrast_slider")
+    brightness = st.slider("Brightness", 0.5, 2.0, st.session_state.image_params['brightness'], step=0.1, key="brightness_slider")
+    saturation = st.slider("Saturation", 0.0, 2.0, st.session_state.image_params['saturation'], step=0.1, key="saturation_slider")
+    sharpness = st.slider("Sharpness", 0.0, 3.0, st.session_state.image_params['sharpness'], step=0.1, key="sharpness_slider")
+    edge_enhance = st.checkbox("Edge Enhancement", value=st.session_state.image_params['edge_enhance'], key="edge_enhance_checkbox")
+    denoise = st.checkbox("Noise Reduction", value=st.session_state.image_params['denoise'], key="denoise_checkbox")
     
-    contrast = st.slider("Contrast", 0.5, 3.0, contrast_val, step=0.1)
-    brightness = st.slider("Brightness", 0.5, 2.0, brightness_val, step=0.1)
-    saturation = st.slider("Saturation", 0.0, 2.0, saturation_val, step=0.1)
-    sharpness = st.slider("Sharpness", 0.0, 3.0, sharpness_val, step=0.1)
-    edge_enhance = st.checkbox("Edge Enhancement", value=edge_enhance_val)
-    denoise = st.checkbox("Noise Reduction", value=denoise_val)
+    # Update session state when sliders change
+    st.session_state.image_params['contrast'] = contrast
+    st.session_state.image_params['brightness'] = brightness
+    st.session_state.image_params['saturation'] = saturation
+    st.session_state.image_params['sharpness'] = sharpness
+    st.session_state.image_params['edge_enhance'] = edge_enhance
+    st.session_state.image_params['denoise'] = denoise
 
 # Simplified Analysis configuration
 analysis_prompts = get_analysis_prompts()
@@ -376,32 +386,41 @@ with st.sidebar.expander("⚙️ Model Settings", expanded=False):
         st.write("**Generation Parameters**")
     with col2:
         if st.button("🔄 Reset", key="reset_model_btn", help="Reset to default values"):
-            st.session_state.reset_model_params = True
+            # Set appropriate default for max_tokens based on analysis type
+            default_max_tokens = DEFAULT_MAX_TOKENS_BRIEF if analysis_type == "Brief Description" else DEFAULT_MAX_TOKENS_FULL
+            st.session_state.model_params = {
+                'max_tokens': default_max_tokens,
+                'temperature': DEFAULT_TEMPERATURE,
+                'top_p': DEFAULT_TOP_P
+            }
             st.rerun()
     
-    # Use default values if reset was triggered
-    if st.session_state.reset_model_params:
-        if analysis_type == "Brief Description":
-            max_tokens_val = DEFAULT_MAX_TOKENS_BRIEF
-        else:
-            max_tokens_val = DEFAULT_MAX_TOKENS_FULL
-        temperature_val = DEFAULT_TEMPERATURE
-        top_p_val = DEFAULT_TOP_P
-        st.session_state.reset_model_params = False
-    else:
-        if analysis_type == "Brief Description":
-            max_tokens_val = 100
-        else:
-            max_tokens_val = 200
-        temperature_val = 0.3
-        top_p_val = 0.85
-    
+    # Determine current max_tokens range and default based on analysis type
     if analysis_type == "Brief Description":
-        max_tokens = st.slider("Max Response Tokens", 50, 200, max_tokens_val, step=25)
+        max_tokens_min, max_tokens_max = 50, 200
+        max_tokens_step = 25
+        current_max_tokens = st.session_state.model_params.get('max_tokens', DEFAULT_MAX_TOKENS_BRIEF)
+        # Ensure the value is within the brief description range
+        if current_max_tokens > 200:
+            current_max_tokens = DEFAULT_MAX_TOKENS_BRIEF
+            st.session_state.model_params['max_tokens'] = current_max_tokens
     else:
-        max_tokens = st.slider("Max Response Tokens", 100, 400, max_tokens_val, step=50)
-    temperature = st.slider("Temperature", 0.1, 1.0, temperature_val, step=0.1)
-    top_p = st.slider("Top-p", 0.1, 1.0, top_p_val, step=0.05)
+        max_tokens_min, max_tokens_max = 100, 400
+        max_tokens_step = 50
+        current_max_tokens = st.session_state.model_params.get('max_tokens', DEFAULT_MAX_TOKENS_FULL)
+        # Ensure the value is within the full analysis range
+        if current_max_tokens < 100:
+            current_max_tokens = DEFAULT_MAX_TOKENS_FULL
+            st.session_state.model_params['max_tokens'] = current_max_tokens
+    
+    max_tokens = st.slider("Max Response Tokens", max_tokens_min, max_tokens_max, current_max_tokens, step=max_tokens_step, key="max_tokens_slider")
+    temperature = st.slider("Temperature", 0.1, 1.0, st.session_state.model_params['temperature'], step=0.1, key="temperature_slider")
+    top_p = st.slider("Top-p", 0.1, 1.0, st.session_state.model_params['top_p'], step=0.05, key="top_p_slider")
+    
+    # Update session state when sliders change
+    st.session_state.model_params['max_tokens'] = max_tokens
+    st.session_state.model_params['temperature'] = temperature
+    st.session_state.model_params['top_p'] = top_p
 
 # ---------------------- Main Interface ----------------------
 st.title("🛰️ GEOINT")
