@@ -356,7 +356,7 @@ with col1:
                 image, contrast, brightness, saturation, sharpness, edge_enhance, denoise
             )
             
-            st.image(enhanced_image, caption=f"Enhanced: {uploaded.name}", use_column_width=True)
+            st.image(enhanced_image, caption=f"Enhanced: {uploaded.name}", use_container_width=True)
             
             # Display image info
             st.info(f"Image size: {enhanced_image.size[0]} x {enhanced_image.size[1]} pixels")
