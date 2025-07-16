@@ -265,7 +265,6 @@ Avoid uncertain identifications or ambiguous objects. Provide evidence-based rea
 
 Do not assume facility type or function without visual confirmation. Be specific and cautious.""",
 
-
         "Standard Aerial Analysis": """Provide a structured analysis of the aerial image using only visually confirmed features:
 
 - Describe the general setting and terrain based on texture, elevation, and color patterns
@@ -336,6 +335,7 @@ with st.sidebar.expander("🖼️ Image Processing", expanded=False):
             }
             st.rerun()
     
+    # Use session state values for all controls
     contrast = st.slider("Contrast", 0.5, 3.0, st.session_state.image_params['contrast'], step=0.1, key="contrast_slider")
     brightness = st.slider("Brightness", 0.5, 2.0, st.session_state.image_params['brightness'], step=0.1, key="brightness_slider")
     saturation = st.slider("Saturation", 0.0, 2.0, st.session_state.image_params['saturation'], step=0.1, key="saturation_slider")
@@ -343,7 +343,7 @@ with st.sidebar.expander("🖼️ Image Processing", expanded=False):
     edge_enhance = st.checkbox("Edge Enhancement", value=st.session_state.image_params['edge_enhance'], key="edge_enhance_checkbox")
     denoise = st.checkbox("Noise Reduction", value=st.session_state.image_params['denoise'], key="denoise_checkbox")
     
-    # Update session state when sliders change
+    # Update session state when controls change
     st.session_state.image_params['contrast'] = contrast
     st.session_state.image_params['brightness'] = brightness
     st.session_state.image_params['saturation'] = saturation
@@ -413,11 +413,12 @@ with st.sidebar.expander("⚙️ Model Settings", expanded=False):
             current_max_tokens = DEFAULT_MAX_TOKENS_FULL
             st.session_state.model_params['max_tokens'] = current_max_tokens
     
+    # Use session state values for all controls
     max_tokens = st.slider("Max Response Tokens", max_tokens_min, max_tokens_max, current_max_tokens, step=max_tokens_step, key="max_tokens_slider")
     temperature = st.slider("Temperature", 0.1, 1.0, st.session_state.model_params['temperature'], step=0.1, key="temperature_slider")
     top_p = st.slider("Top-p", 0.1, 1.0, st.session_state.model_params['top_p'], step=0.05, key="top_p_slider")
     
-    # Update session state when sliders change
+    # Update session state when controls change
     st.session_state.model_params['max_tokens'] = max_tokens
     st.session_state.model_params['temperature'] = temperature
     st.session_state.model_params['top_p'] = top_p
@@ -441,9 +442,15 @@ with col1:
     if uploaded:
         image = process_image(uploaded)
         if image:
-            # Apply enhancements
+            # Apply enhancements using session state values
             enhanced_image = enhance_satellite_image(
-                image, contrast, brightness, saturation, sharpness, edge_enhance, denoise
+                image, 
+                st.session_state.image_params['contrast'], 
+                st.session_state.image_params['brightness'], 
+                st.session_state.image_params['saturation'], 
+                st.session_state.image_params['sharpness'], 
+                st.session_state.image_params['edge_enhance'], 
+                st.session_state.image_params['denoise']
             )
             
             st.image(enhanced_image, caption=f"Enhanced: {uploaded.name}", use_column_width=True)
@@ -464,7 +471,13 @@ with col2:
             image = process_image(uploaded)
             if image:
                 enhanced_image = enhance_satellite_image(
-                    image, contrast, brightness, saturation, sharpness, edge_enhance, denoise
+                    image, 
+                    st.session_state.image_params['contrast'], 
+                    st.session_state.image_params['brightness'], 
+                    st.session_state.image_params['saturation'], 
+                    st.session_state.image_params['sharpness'], 
+                    st.session_state.image_params['edge_enhance'], 
+                    st.session_state.image_params['denoise']
                 )
                 
                 if analysis_type == "Auto-detect" or auto_screen:
@@ -489,7 +502,9 @@ with col2:
                     with st.spinner("Generating analysis..."):
                         result = run_analysis(
                             enhanced_image, final_prompt, model, processor, torch_device,
-                            max_tokens, temperature, top_p
+                            st.session_state.model_params['max_tokens'], 
+                            st.session_state.model_params['temperature'], 
+                            st.session_state.model_params['top_p']
                         )
                     
                     analysis_used = "Defense Image Analyst" if analysis_approach == "military" and analysis_type == "Auto-detect" else analysis_type
@@ -499,7 +514,9 @@ with col2:
                     with st.spinner("Analyzing aerial image..."):
                         result = run_analysis(
                             enhanced_image, prompt, model, processor, torch_device,
-                            max_tokens, temperature, top_p
+                            st.session_state.model_params['max_tokens'], 
+                            st.session_state.model_params['temperature'], 
+                            st.session_state.model_params['top_p']
                         )
                     analysis_used = analysis_type
                     analysis_approach = "unknown"
